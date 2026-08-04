@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agroapteka kabineti — GulTuvak</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="nav-inner">
+    <a href="index.html" class="nav-logo">🌿 GulTuvak</a>
+    <nav>
+      <button class="nav-burger" aria-label="Menyu"><span></span><span></span><span></span></button>
+      <div class="nav-links">
+        <a href="index.html">Bosh sahifa</a>
+        <a href="plants.html">O'simliklar</a>
+        <a href="guldokon.html">Guldokonlar</a>
+        <a href="agroapteka.html">Agroapteka</a>
+        <a href="rating.html">Reyting</a>
+        <a href="dashboard.html">Mening Gultuvagim</a>
+        <a href="#" onclick="logout()" class="btn btn-outline btn-sm">Chiqish</a>
+      </div>
+    </nav>
+  </div>
+</header>
+
+<div id="loading" class="text-center" style="padding:60px;"><div class="spinner"></div></div>
+
+<div id="locked-view" class="container" style="display:none;">
+  <div class="locked-panel">
+    <div style="font-size:2.4rem;">🔒</div>
+    <h2 style="margin-top:12px;">Agroapteka kabineti</h2>
+    <p>Bu bo'lim faqat maxsus kirish kodi yoki premium obuna orqali ochiladi.</p>
+    <form id="code-form" style="margin-top:24px; text-align:left;">
+      <div class="form-field">
+        <label>Kirish kodi</label>
+        <input type="text" id="access-code" placeholder="APTEKA-2026-XX" required>
+      </div>
+      <p id="code-error" class="muted" style="color:var(--color-danger); display:none;"></p>
+      <button type="submit" class="btn btn-clay btn-block">Kodni tasdiqlash</button>
+    </form>
+    <p class="muted" style="margin-top:18px;">Premium obunangiz bormi? <a href="#" style="text-decoration:underline; color:var(--color-forest);">Administratorga murojaat qiling</a></p>
+  </div>
+</div>
+
+<section class="section" id="panel-view" style="display:none; padding-top:30px;">
+  <div class="container">
+    <h1 style="font-size:1.8rem;">Agroaptekam</h1>
+    <p class="muted" style="margin-bottom:26px;">Do'koningiz ma'lumotlarini va mahsulotlarni shu yerda boshqaring.</p>
+
+    <div class="card" style="padding:24px; margin-bottom:30px;">
+      <h3 style="margin-bottom:16px;">Apteka ma'lumotlari</h3>
+      <p class="muted" style="margin-bottom:16px;">Ma'lumotlaringiz saqlangandan va admin tomonidan tasdiqlangandan so'ng "Agroapteka" sahifasida hammaga ko'rinadi.</p>
+      <form id="pharmacy-form">
+        <div class="form-field"><label>Apteka nomi</label><input type="text" id="ph-name" required></div>
+        <div class="form-field"><label>Manzil</label><input type="text" id="ph-address" required></div>
+        <div class="form-field"><label>Telefon raqam</label><input type="tel" id="ph-phone" required></div>
+        <div class="form-field"><label>Ish vaqti</label><input type="text" id="ph-hours" placeholder="09:00 – 20:00"></div>
+        <div class="form-field"><label>Qisqacha tavsif</label><textarea id="ph-desc" rows="3"></textarea></div>
+        <button type="submit" class="btn btn-primary">Saqlash</button>
+      </form>
+    </div>
+
+    <div id="products-section" style="display:none;">
+      <div class="flex-between" style="margin-bottom:16px;">
+        <h3>Mahsulotlarim</h3>
+        <button class="btn btn-clay btn-sm" onclick="openProductModal()">+ Mahsulot qo'shish</button>
+      </div>
+      <div id="products-grid" class="grid"></div>
+    </div>
+  </div>
+</section>
+
+<div id="product-modal" style="display:none; position:fixed; inset:0; background:rgba(27,27,22,0.5); z-index:200; align-items:center; justify-content:center; padding:20px;">
+  <div class="card" style="max-width:420px; width:100%; padding:28px; background:var(--color-white);">
+    <h3 style="margin-bottom:18px;">Yangi mahsulot</h3>
+    <form id="product-form">
+      <div class="form-field"><label>Nomi</label><input type="text" id="p-name" required></div>
+      <div class="form-field"><label>Narxi (so'm)</label><input type="number" id="p-price"></div>
+      <div class="form-field"><label>Rasm URL (ixtiyoriy)</label><input type="url" id="p-photo" placeholder="https://..."></div>
+      <div class="form-field"><label>Tavsif</label><textarea id="p-desc" rows="2"></textarea></div>
+      <div class="flex gap-md" style="margin-top:10px;">
+        <button type="button" class="btn btn-ghost" onclick="closeProductModal()">Bekor qilish</button>
+        <button type="submit" class="btn btn-primary" style="flex:1;">Qo'shish</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase-client.js"></script>
+<script>
+let currentUser = null;
+let myPharmacy = null;
+
+async function init() {
+  currentUser = await requireAuth();
+  if (!currentUser) return;
+  const profile = await getProfile(currentUser.id);
+
+  document.getElementById("loading").style.display = "none";
+
+  if (profile && (profile.role === "apteka" || profile.is_premium)) {
+    showPanel();
+  } else {
+    document.getElementById("locked-view").style.display = "block";
+  }
+}
+
+document.getElementById("code-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const code = document.getElementById("access-code").value.trim();
+  const errEl = document.getElementById("code-error");
+  errEl.style.display = "none";
+
+  const { data: codeRow } = await sb.from("access_codes").select("*").eq("code", code).eq("code_type", "apteka").eq("is_used", false).maybeSingle();
+
+  if (!codeRow) {
+    errEl.textContent = "Kod noto'g'ri yoki allaqachon ishlatilgan.";
+    errEl.style.display = "block";
+    return;
+  }
+
+  await sb.from("access_codes").update({ is_used: true, used_by: currentUser.id }).eq("id", codeRow.id);
+  await sb.from("profiles").update({ role: "apteka" }).eq("id", currentUser.id);
+
+  document.getElementById("locked-view").style.display = "none";
+  showPanel();
+});
+
+async function showPanel() {
+  document.getElementById("panel-view").style.display = "block";
+
+  const { data: pharmacy } = await sb.from("pharmacies").select("*").eq("owner_id", currentUser.id).maybeSingle();
+  if (pharmacy) {
+    myPharmacy = pharmacy;
+    document.getElementById("ph-name").value = pharmacy.name;
+    document.getElementById("ph-address").value = pharmacy.address;
+    document.getElementById("ph-phone").value = pharmacy.phone;
+    document.getElementById("ph-hours").value = pharmacy.working_hours || "";
+    document.getElementById("ph-desc").value = pharmacy.description || "";
+    document.getElementById("products-section").style.display = "block";
+    loadProducts();
+  }
+}
+
+document.getElementById("pharmacy-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const payload = {
+    owner_id: currentUser.id,
+    name: document.getElementById("ph-name").value.trim(),
+    address: document.getElementById("ph-address").value.trim(),
+    phone: document.getElementById("ph-phone").value.trim(),
+    working_hours: document.getElementById("ph-hours").value.trim(),
+    description: document.getElementById("ph-desc").value.trim()
+  };
+
+  if (myPharmacy) {
+    await sb.from("pharmacies").update(payload).eq("id", myPharmacy.id);
+  } else {
+    const { data } = await sb.from("pharmacies").insert(payload).select().single();
+    myPharmacy = data;
+    document.getElementById("products-section").style.display = "block";
+  }
+  alert("Saqlandi!");
+});
+
+function openProductModal() { document.getElementById("product-modal").style.display = "flex"; }
+function closeProductModal() { document.getElementById("product-modal").style.display = "none"; }
+
+document.getElementById("product-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  if (!myPharmacy) { alert("Avval apteka ma'lumotlarini saqlang."); return; }
+  await sb.from("pharmacy_products").insert({
+    pharmacy_id: myPharmacy.id,
+    name: document.getElementById("p-name").value.trim(),
+    price: document.getElementById("p-price").value || null,
+    photo_url: document.getElementById("p-photo").value.trim() || null,
+    description: document.getElementById("p-desc").value.trim()
+  });
+  closeProductModal();
+  document.getElementById("product-form").reset();
+  loadProducts();
+});
+
+async function loadProducts() {
+  const { data } = await sb.from("pharmacy_products").select("*").eq("pharmacy_id", myPharmacy.id).order("created_at", { ascending: false });
+  document.getElementById("products-grid").innerHTML = (data || []).map(pr => `
+    <div class="card" style="padding:16px;">
+      <h3 style="font-size:1rem;">${pr.name}</h3>
+      ${pr.price ? `<p class="muted">${pr.price} so'm</p>` : ""}
+      <p style="font-size:.88rem;">${pr.description || ""}</p>
+      <button class="btn btn-ghost btn-sm" onclick="deleteProduct('${pr.id}')">O'chirish</button>
+    </div>
+  `).join("") || `<p class="muted">Hali mahsulot qo'shilmagan.</p>`;
+}
+
+async function deleteProduct(id) {
+  await sb.from("pharmacy_products").delete().eq("id", id);
+  loadProducts();
+}
+
+init();
+</script>
+</body>
+</html>
