@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GulTuvak — Uy o'simliklarini parvarish qilish platformasi</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="nav-inner">
+    <a href="index.html" class="nav-logo">
+      <svg class="pot-icon" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M14 18 C14 10 16 4 20 4 C24 4 26 10 26 18" stroke="#4A7A5E" stroke-width="2.5" stroke-linecap="round"/>
+        <path d="M9 18 H31 L28 34 H12 L9 18 Z" fill="#B5673A"/>
+        <path d="M9 18 H31" stroke="#1F3A2E" stroke-width="2"/>
+      </svg>
+      GulTuvak
+    </a>
+    <nav>
+      <button class="nav-burger" aria-label="Menyu">
+        <span></span><span></span><span></span>
+      </button>
+      <div class="nav-links">
+        <a href="index.html" class="active">Bosh sahifa</a>
+        <a href="plants.html">O'simliklar</a>
+        <a href="guldokon.html">Guldokonlar</a>
+        <a href="agroapteka.html">Agroapteka</a>
+        <a href="rating.html">Reyting</a>
+        <a href="dashboard.html">Mening Gultuvagim</a>
+        <a href="auth.html" class="btn btn-primary btn-sm">Kirish</a>
+      </div>
+    </nav>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="container hero-grid">
+    <div>
+      <div class="eyebrow">🌱 Ekologik loyiha</div>
+      <h1>Har bir uy — kichik bog', har bir tuvak — g'amxo'rlik hikoyasi</h1>
+      <p style="font-size:1.05rem; max-width:520px;">GulTuvak — uyingizdagi gullarni parvarish qilishni osonlashtiruvchi platforma. 50 dan ortiq o'simlik bo'yicha aniq tavsiyalar, shaxsiy kabinet, kundalik eslatmalar va eng yaqin guldokon hamda agroaptekalar — barchasi bir joyda.</p>
+      <div class="hero-actions">
+        <a href="auth.html" class="btn btn-clay">Ro'yxatdan o'tish</a>
+        <a href="plants.html" class="btn btn-outline">O'simliklarni ko'rish</a>
+      </div>
+    </div>
+    <div class="card" style="padding:28px; background:linear-gradient(160deg,#EDE7D8,#F6F2E9);">
+      <h3 style="margin-bottom:16px;">Platformada nima bor?</h3>
+      <div style="display:flex; flex-direction:column; gap:14px;">
+        <div class="flex gap-sm"><span>🪴</span><span>50+ o'simlik bo'yicha to'liq parvarish tavsiyalari</span></div>
+        <div class="flex gap-sm"><span>🔔</span><span>Kundalik "nima qilish kerak" eslatmalari</span></div>
+        <div class="flex gap-sm"><span>🏪</span><span>Yaqin guldokonlar manzili va raqami</span></div>
+        <div class="flex gap-sm"><span>💊</span><span>Agroapteka — o'simlik "dorixonasi"</span></div>
+        <div class="flex gap-sm"><span>🏆</span><span>Eng faol yetishtiruvchilar uchun chegirmalar</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <div class="section-head">
+      <h2>Qanday ishlaydi</h2>
+      <p>Uch qadamda o'z shaxsiy Gultuvagingizni yarating</p>
+    </div>
+    <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(260px,1fr));">
+      <div class="card" style="padding:26px;">
+        <div class="badge badge-forest" style="margin-bottom:12px;">1-qadam</div>
+        <h3>Ro'yxatdan o'ting</h3>
+        <p>Ism va telefon raqamingiz bilan bir necha soniyada hisob yarating.</p>
+      </div>
+      <div class="card" style="padding:26px;">
+        <div class="badge badge-forest" style="margin-bottom:12px;">2-qadam</div>
+        <h3>Gulingizni qo'shing</h3>
+        <p>Uyingizda bor yoki olib parvarish qilmoqchi bo'lgan o'simlikni shaxsiy kabinetga joylashtiring.</p>
+      </div>
+      <div class="card" style="padding:26px;">
+        <div class="badge badge-forest" style="margin-bottom:12px;">3-qadam</div>
+        <h3>Eslatmalarga amal qiling</h3>
+        <p>Har kuni sug'orish, oziqlantirish va parvarish bo'yicha aniq ko'rsatmalarni oling.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section section-alt">
+  <div class="container">
+    <div class="section-head">
+      <h2>Mashhur o'simliklar</h2>
+      <p>Katalogimizdagi 50 dan ortiq o'simlikdan bir nechtasi</p>
+    </div>
+    <div id="popular-plants" class="grid"></div>
+    <div class="text-center" style="margin-top:30px;">
+      <a href="plants.html" class="btn btn-outline">Barcha o'simliklarni ko'rish →</a>
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container footer-inner">
+    <div>
+      <div class="nav-logo" style="color:var(--color-paper);">🌿 GulTuvak</div>
+      <p style="color:rgba(246,242,233,0.7); max-width:280px; margin-top:10px;">Ekologik loyiha — uy o'simliklarini parvarish qilish madaniyatini rivojlantiramiz.</p>
+    </div>
+    <div>
+      <h4 style="color:var(--color-paper);">Bo'limlar</h4>
+      <div style="display:flex; flex-direction:column; gap:8px; margin-top:10px;">
+        <a href="plants.html">O'simliklar</a>
+        <a href="guldokon.html">Guldokonlar</a>
+        <a href="agroapteka.html">Agroapteka</a>
+        <a href="rating.html">Reyting</a>
+      </div>
+    </div>
+    <div>
+      <h4 style="color:var(--color-paper);">Biznes uchun</h4>
+      <div style="display:flex; flex-direction:column; gap:8px; margin-top:10px;">
+        <a href="guldokon-panel.html">Guldokon egasiman</a>
+        <a href="agroapteka-panel.html">Agroapteka egasiman</a>
+      </div>
+    </div>
+  </div>
+  <div class="footer-bottom container">© 2026 GulTuvak. Barcha huquqlar himoyalangan.</div>
+</footer>
+
+<script src="js/plants-data.js"></script>
+<script>
+  const popular = PLANTS_DATA.slice(0, 8);
+  document.getElementById("popular-plants").innerHTML = popular.map(p => `
+    <a href="plant-detail.html?id=${p.id}" class="card plant-card">
+      <div class="plant-card-media">🌿</div>
+      <div class="plant-card-body">
+        <span class="plant-card-tag">${p.category}</span>
+        <h3 style="font-size:1.05rem; margin-top:4px;">${p.name_uz}</h3>
+        <div class="plant-card-meta">
+          <span>💧 ${p.watering_days} kunda</span>
+          <span>⭐ ${p.difficulty}</span>
+        </div>
+      </div>
+    </a>
+  `).join("");
+</script>
+</body>
+</html>
