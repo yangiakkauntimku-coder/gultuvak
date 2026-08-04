@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin panel — GulTuvak</title>
+<link rel="stylesheet" href="css/style.css">
+<style>
+  .admin-tabs { display: flex; gap: 6px; overflow-x: auto; margin-bottom: 26px; border-bottom: 1px solid var(--color-line); }
+  .admin-tab {
+    padding: 12px 18px; background: none; border: none; cursor: pointer;
+    font-family: var(--font-body); font-weight: 600; font-size: .92rem;
+    color: var(--color-ink-soft); white-space: nowrap; border-bottom: 2px solid transparent;
+  }
+  .admin-tab.active { color: var(--color-forest); border-bottom-color: var(--color-clay); }
+  .admin-panel { display: none; }
+  .admin-panel.active { display: block; }
+  .stat-card { padding: 22px; text-align: center; }
+  .stat-num { font-family: var(--font-display); font-size: 2.2rem; color: var(--color-forest); font-weight: 700; }
+  .role-select { padding: 6px 8px; border-radius: 6px; border: 1.5px solid var(--color-line); font-family: var(--font-body); font-size: .85rem; }
+  .toggle-pill { display:inline-flex; align-items:center; gap:6px; cursor:pointer; }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="nav-inner">
+    <a href="index.html" class="nav-logo">🌿 GulTuvak</a>
+    <nav>
+      <button class="nav-burger" aria-label="Menyu"><span></span><span></span><span></span></button>
+      <div class="nav-links">
+        <a href="index.html">Bosh sahifa</a>
+        <a href="dashboard.html">Mening Gultuvagim</a>
+        <a href="admin.html" class="active">Admin panel</a>
+        <a href="#" onclick="logout()" class="btn btn-outline btn-sm">Chiqish</a>
+      </div>
+    </nav>
+  </div>
+</header>
+
+<div id="loading" class="text-center" style="padding:60px;"><div class="spinner"></div></div>
+
+<div id="denied-view" class="container" style="display:none;">
+  <div class="locked-panel">
+    <div style="font-size:2.4rem;">🚫</div>
+    <h2 style="margin-top:12px;">Ruxsat yo'q</h2>
+    <p>Bu bo'lim faqat administratorlar uchun mo'ljallangan.</p>
+    <a href="index.html" class="btn btn-primary" style="margin-top:16px;">Bosh sahifaga qaytish</a>
+  </div>
+</div>
+
+<section class="section" id="admin-view" style="display:none; padding-top:30px;">
+  <div class="container">
+    <h1 style="font-size:1.8rem; margin-bottom:6px;">Admin panel</h1>
+    <p class="muted" style="margin-bottom:26px;">GulTuvak platformasini shu yerdan boshqaring.</p>
+
+    <div class="admin-tabs">
+      <button class="admin-tab active" data-tab="stats">Statistika</button>
+      <button class="admin-tab" data-tab="codes">Kirish kodlari</button>
+      <button class="admin-tab" data-tab="users">Foydalanuvchilar</button>
+      <button class="admin-tab" data-tab="shops">Guldokonlar</button>
+      <button class="admin-tab" data-tab="pharmacies">Agroaptekalar</button>
+    </div>
+
+    <!-- STATISTIKA -->
+    <div class="admin-panel active" id="panel-stats">
+      <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(160px,1fr));">
+        <div class="card stat-card"><div class="stat-num" id="stat-users">–</div><div class="muted">Foydalanuvchi</div></div>
+        <div class="card stat-card"><div class="stat-num" id="stat-plants">–</div><div class="muted">Ro'yxatga olingan gul</div></div>
+        <div class="card stat-card"><div class="stat-num" id="stat-shops">–</div><div class="muted">Guldokon</div></div>
+        <div class="card stat-card"><div class="stat-num" id="stat-pharmacies">–</div><div class="muted">Agroapteka</div></div>
+        <div class="card stat-card"><div class="stat-num" id="stat-codes">–</div><div class="muted">Ishlatilmagan kod</div></div>
+      </div>
+    </div>
+
+    <!-- KIRISH KODLARI -->
+    <div class="admin-panel" id="panel-codes">
+      <div class="card" style="padding:22px; margin-bottom:24px;">
+        <h3 style="margin-bottom:14px;">Yangi kod yaratish</h3>
+        <form id="code-form" class="flex gap-md" style="flex-wrap:wrap; align-items:flex-end;">
+          <div class="form-field" style="margin-bottom:0; flex:1; min-width:160px;">
+            <label>Turi</label>
+            <select id="new-code-type">
+              <option value="dokon">Guldokon</option>
+              <option value="apteka">Agroapteka</option>
+            </select>
+          </div>
+          <div class="form-field" style="margin-bottom:0; flex:1; min-width:160px;">
+            <label>Kod (bo'sh qoldirsangiz avtomatik yaratiladi)</label>
+            <input type="text" id="new-code-value" placeholder="DOKON-2026-C3">
+          </div>
+          <button type="submit" class="btn btn-primary">+ Yaratish</button>
+        </form>
+      </div>
+      <div class="card" style="padding:0; overflow-x:auto;">
+        <table>
+          <thead><tr><th>Kod</th><th>Turi</th><th>Holati</th><th>Ishlatilgan sana</th><th></th></tr></thead>
+          <tbody id="codes-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- FOYDALANUVCHILAR -->
+    <div class="admin-panel" id="panel-users">
+      <div class="card" style="padding:0; overflow-x:auto;">
+        <table>
+          <thead><tr><th>Ism</th><th>Telefon</th><th>Rol</th><th>Premium</th><th>Ro'yxatdan o'tgan</th></tr></thead>
+          <tbody id="users-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- GULDOKONLAR -->
+    <div class="admin-panel" id="panel-shops">
+      <div class="card" style="padding:0; overflow-x:auto;">
+        <table>
+          <thead><tr><th>Nomi</th><th>Manzil</th><th>Telefon</th><th>Holati</th><th></th></tr></thead>
+          <tbody id="shops-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- AGROAPTEKALAR -->
+    <div class="admin-panel" id="panel-pharmacies">
+      <div class="card" style="padding:0; overflow-x:auto;">
+        <table>
+          <thead><tr><th>Nomi</th><th>Manzil</th><th>Telefon</th><th>Holati</th><th></th></tr></thead>
+          <tbody id="pharmacies-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase-client.js"></script>
+<script>
+let currentUser = null;
+
+async function init() {
+  currentUser = await requireAuth();
+  if (!currentUser) return;
+  const profile = await getProfile(currentUser.id);
+  document.getElementById("loading").style.display = "none";
+
+  if (!profile || profile.role !== "admin") {
+    document.getElementById("denied-view").style.display = "block";
+    return;
+  }
+
+  document.getElementById("admin-view").style.display = "block";
+  loadStats();
+  loadCodes();
+  loadUsers();
+  loadShops();
+  loadPharmacies();
+}
+
+// ---------- Tab switching ----------
+document.querySelectorAll(".admin-tab").forEach(tab => {
+  tab.addEventListener("click", () => {
+    document.querySelectorAll(".admin-tab").forEach(t => t.classList.remove("active"));
+    document.querySelectorAll(".admin-panel").forEach(p => p.classList.remove("active"));
+    tab.classList.add("active");
+    document.getElementById("panel-" + tab.dataset.tab).classList.add("active");
+  });
+});
+
+// ---------- Statistika ----------
+async function loadStats() {
+  const [{ count: usersCount }, { count: plantsCount }, { count: shopsCount }, { count: pharmaciesCount }, { count: codesCount }] = await Promise.all([
+    sb.from("profiles").select("*", { count: "exact", head: true }),
+    sb.from("user_plants").select("*", { count: "exact", head: true }),
+    sb.from("shops").select("*", { count: "exact", head: true }),
+    sb.from("pharmacies").select("*", { count: "exact", head: true }),
+    sb.from("access_codes").select("*", { count: "exact", head: true }).eq("is_used", false)
+  ]);
+  document.getElementById("stat-users").textContent = usersCount ?? 0;
+  document.getElementById("stat-plants").textContent = plantsCount ?? 0;
+  document.getElementById("stat-shops").textContent = shopsCount ?? 0;
+  document.getElementById("stat-pharmacies").textContent = pharmaciesCount ?? 0;
+  document.getElementById("stat-codes").textContent = codesCount ?? 0;
+}
+
+// ---------- Kirish kodlari ----------
+function randomCode(type) {
+  const prefix = type === "dokon" ? "DOKON" : "APTEKA";
+  const rand = Math.random().toString(36).substring(2, 6).toUpperCase();
+  return `${prefix}-2026-${rand}`;
+}
+
+document.getElementById("code-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const type = document.getElementById("new-code-type").value;
+  let code = document.getElementById("new-code-value").value.trim();
+  if (!code) code = randomCode(type);
+
+  const { error } = await sb.from("access_codes").insert({ code, code_type: type });
+  if (error) { alert("Xatolik: " + error.message); return; }
+
+  document.getElementById("new-code-value").value = "";
+  loadCodes();
+  loadStats();
+});
+
+async function loadCodes() {
+  const { data } = await sb.from("access_codes").select("*, profiles:used_by(full_name, phone)").order("created_at", { ascending: false });
+  document.getElementById("codes-body").innerHTML = (data || []).map(c => `
+    <tr>
+      <td><code>${c.code}</code></td>
+      <td>${c.code_type === "dokon" ? "Guldokon" : "Agroapteka"}</td>
+      <td>${c.is_used ? `<span class="badge badge-clay">Ishlatilgan</span>` : `<span class="badge badge-forest">Bo'sh</span>`}</td>
+      <td class="muted">${c.profiles ? c.profiles.full_name + " · " + c.profiles.phone : "—"}</td>
+      <td>${!c.is_used ? `<button class="btn btn-ghost btn-sm" onclick="deleteCode(${c.id})">O'chirish</button>` : ""}</td>
+    </tr>
+  `).join("") || `<tr><td colspan="5" class="muted">Hali kod yaratilmagan.</td></tr>`;
+}
+
+async function deleteCode(id) {
+  if (!confirm("Kodni o'chirmoqchimisiz?")) return;
+  await sb.from("access_codes").delete().eq("id", id);
+  loadCodes();
+  loadStats();
+}
+
+// ---------- Foydalanuvchilar ----------
+async function loadUsers() {
+  const { data } = await sb.from("profiles").select("*").order("created_at", { ascending: false });
+  document.getElementById("users-body").innerHTML = (data || []).map(u => `
+    <tr>
+      <td>${u.full_name}</td>
+      <td>${u.phone}</td>
+      <td>
+        <select class="role-select" onchange="updateRole('${u.id}', this.value)">
+          <option value="user" ${u.role === "user" ? "selected" : ""}>Foydalanuvchi</option>
+          <option value="dokon" ${u.role === "dokon" ? "selected" : ""}>Guldokon</option>
+          <option value="apteka" ${u.role === "apteka" ? "selected" : ""}>Agroapteka</option>
+          <option value="admin" ${u.role === "admin" ? "selected" : ""}>Admin</option>
+        </select>
+      </td>
+      <td>
+        <label class="toggle-pill">
+          <input type="checkbox" ${u.is_premium ? "checked" : ""} onchange="updatePremium('${u.id}', this.checked)">
+          Premium
+        </label>
+      </td>
+      <td class="muted">${new Date(u.created_at).toLocaleDateString("uz-UZ")}</td>
+    </tr>
+  `).join("") || `<tr><td colspan="5" class="muted">Foydalanuvchi topilmadi.</td></tr>`;
+}
+
+async function updateRole(userId, role) {
+  await sb.from("profiles").update({ role }).eq("id", userId);
+}
+async function updatePremium(userId, isPremium) {
+  await sb.from("profiles").update({ is_premium: isPremium }).eq("id", userId);
+}
+
+// ---------- Guldokonlar ----------
+async function loadShops() {
+  const { data } = await sb.from("shops").select("*").order("created_at", { ascending: false });
+  document.getElementById("shops-body").innerHTML = (data || []).map(s => `
+    <tr>
+      <td>${s.name}</td>
+      <td class="muted">${s.address}</td>
+      <td class="muted">${s.phone}</td>
+      <td>${s.is_approved ? `<span class="badge badge-forest">Tasdiqlangan</span>` : `<span class="badge badge-clay">Kutilmoqda</span>`}</td>
+      <td>
+        <button class="btn btn-outline btn-sm" onclick="toggleShopApproval('${s.id}', ${!s.is_approved})">${s.is_approved ? "Bekor qilish" : "Tasdiqlash"}</button>
+        <button class="btn btn-ghost btn-sm" onclick="deleteShop('${s.id}')">O'chirish</button>
+      </td>
+    </tr>
+  `).join("") || `<tr><td colspan="5" class="muted">Guldokon topilmadi.</td></tr>`;
+}
+async function toggleShopApproval(id, value) {
+  await sb.from("shops").update({ is_approved: value }).eq("id", id);
+  loadShops();
+}
+async function deleteShop(id) {
+  if (!confirm("Do'konni o'chirmoqchimisiz?")) return;
+  await sb.from("shops").delete().eq("id", id);
+  loadShops();
+  loadStats();
+}
+
+// ---------- Agroaptekalar ----------
+async function loadPharmacies() {
+  const { data } = await sb.from("pharmacies").select("*").order("created_at", { ascending: false });
+  document.getElementById("pharmacies-body").innerHTML = (data || []).map(p => `
+    <tr>
+      <td>${p.name}</td>
+      <td class="muted">${p.address}</td>
+      <td class="muted">${p.phone}</td>
+      <td>${p.is_approved ? `<span class="badge badge-forest">Tasdiqlangan</span>` : `<span class="badge badge-clay">Kutilmoqda</span>`}</td>
+      <td>
+        <button class="btn btn-outline btn-sm" onclick="togglePharmacyApproval('${p.id}', ${!p.is_approved})">${p.is_approved ? "Bekor qilish" : "Tasdiqlash"}</button>
+        <button class="btn btn-ghost btn-sm" onclick="deletePharmacy('${p.id}')">O'chirish</button>
+      </td>
+    </tr>
+  `).join("") || `<tr><td colspan="5" class="muted">Agroapteka topilmadi.</td></tr>`;
+}
+async function togglePharmacyApproval(id, value) {
+  await sb.from("pharmacies").update({ is_approved: value }).eq("id", id);
+  loadPharmacies();
+}
+async function deletePharmacy(id) {
+  if (!confirm("Aptekani o'chirmoqchimisiz?")) return;
+  await sb.from("pharmacies").delete().eq("id", id);
+  loadPharmacies();
+  loadStats();
+}
+
+init();
+</script>
+</body>
+</html>
