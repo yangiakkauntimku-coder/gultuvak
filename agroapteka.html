@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agroapteka — GulTuvak</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="nav-inner">
+    <a href="index.html" class="nav-logo">🌿 GulTuvak</a>
+    <nav>
+      <button class="nav-burger" aria-label="Menyu"><span></span><span></span><span></span></button>
+      <div class="nav-links">
+        <a href="index.html">Bosh sahifa</a>
+        <a href="plants.html">O'simliklar</a>
+        <a href="guldokon.html">Guldokonlar</a>
+        <a href="agroapteka.html" class="active">Agroapteka</a>
+        <a href="rating.html">Reyting</a>
+        <a href="dashboard.html">Mening Gultuvagim</a>
+      </div>
+    </nav>
+  </div>
+</header>
+
+<section class="section" style="padding-top:36px;">
+  <div class="container">
+    <div class="flex-between" style="flex-wrap:wrap; gap:14px; margin-bottom:26px;">
+      <div>
+        <h1 style="font-size:2rem;">Agroapteka</h1>
+        <p>O'simliklaringiz uchun o'g'it, dori va parvarish vositalari sotuvchilari</p>
+      </div>
+      <a href="agroapteka-panel.html" class="btn btn-outline">Men agroapteka egasiman</a>
+    </div>
+
+    <div id="loading" class="text-center" style="padding:50px;"><div class="spinner"></div></div>
+    <div id="pharmacies-grid" class="grid"></div>
+    <div id="empty-state" class="empty-state" style="display:none;">
+      <p>Hozircha ro'yxatga olingan agroaptekalar yo'q. Birinchi bo'lib qo'shiling!</p>
+      <a href="agroapteka-panel.html" class="btn btn-primary" style="margin-top:14px;">Agroapteka qo'shish</a>
+    </div>
+  </div>
+</section>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase-client.js"></script>
+<script>
+async function loadPharmacies() {
+  const { data } = await sb.from("pharmacies").select("*, pharmacy_products(*)").eq("is_approved", true).order("created_at", { ascending: false });
+  document.getElementById("loading").style.display = "none";
+
+  if (!data || data.length === 0) {
+    document.getElementById("empty-state").style.display = "block";
+    return;
+  }
+
+  document.getElementById("pharmacies-grid").innerHTML = data.map(ph => `
+    <div class="card" style="padding:20px;">
+      <div class="plant-card-media" style="height:110px; border-radius:10px; margin-bottom:14px;">💊</div>
+      <h3>${ph.name}</h3>
+      <p class="muted" style="margin:6px 0;">📍 ${ph.address}</p>
+      ${ph.working_hours ? `<p class="muted" style="margin:0 0 6px;">🕒 ${ph.working_hours}</p>` : ""}
+      <p style="margin:8px 0;">${ph.description || ""}</p>
+      ${ph.pharmacy_products && ph.pharmacy_products.length ? `
+        <div class="muted" style="font-size:.8rem; margin:10px 0 4px;">MAHSULOTLAR (${ph.pharmacy_products.length})</div>
+        <div style="display:flex; flex-wrap:wrap; gap:6px;">
+          ${ph.pharmacy_products.slice(0,4).map(pr => `<span class="badge badge-forest">${pr.name}${pr.price ? " · " + pr.price + " so'm" : ""}</span>`).join("")}
+        </div>` : ""}
+      <a href="tel:${ph.phone}" class="btn btn-clay btn-block" style="margin-top:16px;">📞 ${ph.phone}</a>
+    </div>
+  `).join("");
+}
+loadPharmacies();
+</script>
+</body>
+</html>
