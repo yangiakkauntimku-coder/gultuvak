@@ -76,9 +76,12 @@ function switchTab(tab) {
 }
 
 // Telefon raqamni Supabase auth uchun psevdo-email'ga aylantiramiz
+// MUHIM: domen sifatida MX yozuviga ega bo'lgan haqiqiy domen ishlatilishi kerak
+// (masalan gultuvak.app kabi faqat veb-sayt uchun sozlangan domenlar Supabase
+// tomonidan "email address is invalid" deb rad etiladi, chunki ularda pochta serveri yo'q)
 function phoneToEmail(phone) {
   const digits = phone.replace(/\D/g, "");
-  return `u${digits}@gultuvak.app`;
+  return `gultuvak.u${digits}@gmail.com`;
 }
 
 document.getElementById("register-form").addEventListener("submit", async (e) => {
