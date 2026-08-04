@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kirish / Ro'yxatdan o'tish — GulTuvak</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="nav-inner">
+    <a href="index.html" class="nav-logo">🌿 GulTuvak</a>
+    <nav>
+      <button class="nav-burger" aria-label="Menyu"><span></span><span></span><span></span></button>
+      <div class="nav-links">
+        <a href="index.html">Bosh sahifa</a>
+        <a href="plants.html">O'simliklar</a>
+        <a href="guldokon.html">Guldokonlar</a>
+        <a href="agroapteka.html">Agroapteka</a>
+        <a href="rating.html">Reyting</a>
+      </div>
+    </nav>
+  </div>
+</header>
+
+<div class="container">
+  <div class="auth-box">
+    <div class="tab-switch">
+      <button id="tab-login" class="active" onclick="switchTab('login')">Kirish</button>
+      <button id="tab-register" onclick="switchTab('register')">Ro'yxatdan o'tish</button>
+    </div>
+
+    <!-- LOGIN FORM -->
+    <form id="login-form">
+      <div class="form-field">
+        <label>Telefon raqam</label>
+        <input type="tel" id="login-phone" placeholder="+998 90 123 45 67" required>
+      </div>
+      <div class="form-field">
+        <label>Parol</label>
+        <input type="password" id="login-password" placeholder="Parolingiz" required>
+      </div>
+      <p id="login-error" class="muted" style="color:var(--color-danger); display:none;"></p>
+      <button type="submit" class="btn btn-primary btn-block">Kirish</button>
+    </form>
+
+    <!-- REGISTER FORM -->
+    <form id="register-form" style="display:none;">
+      <div class="form-field">
+        <label>To'liq ismingiz</label>
+        <input type="text" id="reg-name" placeholder="Ozodbek Abidov" required>
+      </div>
+      <div class="form-field">
+        <label>Telefon raqam</label>
+        <input type="tel" id="reg-phone" placeholder="+998 90 123 45 67" required>
+      </div>
+      <div class="form-field">
+        <label>Parol</label>
+        <input type="password" id="reg-password" placeholder="Kamida 6 belgi" required minlength="6">
+      </div>
+      <p id="register-error" class="muted" style="color:var(--color-danger); display:none;"></p>
+      <button type="submit" class="btn btn-clay btn-block">Ro'yxatdan o'tish</button>
+    </form>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase-client.js"></script>
+<script>
+function switchTab(tab) {
+  document.getElementById("tab-login").classList.toggle("active", tab === "login");
+  document.getElementById("tab-register").classList.toggle("active", tab === "register");
+  document.getElementById("login-form").style.display = tab === "login" ? "block" : "none";
+  document.getElementById("register-form").style.display = tab === "register" ? "block" : "none";
+}
+
+// Telefon raqamni Supabase auth uchun psevdo-email'ga aylantiramiz
+function phoneToEmail(phone) {
+  const digits = phone.replace(/\D/g, "");
+  return `u${digits}@gultuvak.app`;
+}
+
+document.getElementById("register-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const name = document.getElementById("reg-name").value.trim();
+  const phone = document.getElementById("reg-phone").value.trim();
+  const password = document.getElementById("reg-password").value;
+  const errorEl = document.getElementById("register-error");
+  errorEl.style.display = "none";
+
+  const email = phoneToEmail(phone);
+  const { data, error } = await sb.auth.signUp({ email, password });
+
+  if (error) {
+    errorEl.textContent = "Xatolik: " + error.message;
+    errorEl.style.display = "block";
+    return;
+  }
+
+  // Profil yaratish
+  const userId = data.user ? data.user.id : (data.session ? data.session.user.id : null);
+  if (userId) {
+    await sb.from("profiles").insert({ id: userId, full_name: name, phone: phone });
+  }
+
+  window.location.href = "dashboard.html";
+});
+
+document.getElementById("login-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const phone = document.getElementById("login-phone").value.trim();
+  const password = document.getElementById("login-password").value;
+  const errorEl = document.getElementById("login-error");
+  errorEl.style.display = "none";
+
+  const email = phoneToEmail(phone);
+  const { error } = await sb.auth.signInWithPassword({ email, password });
+
+  if (error) {
+    errorEl.textContent = "Telefon raqam yoki parol noto'g'ri.";
+    errorEl.style.display = "block";
+    return;
+  }
+  window.location.href = "dashboard.html";
+});
+</script>
+</body>
+</html>
