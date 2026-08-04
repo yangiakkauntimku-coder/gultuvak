@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reyting — GulTuvak</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="nav-inner">
+    <a href="index.html" class="nav-logo">🌿 GulTuvak</a>
+    <nav>
+      <button class="nav-burger" aria-label="Menyu"><span></span><span></span><span></span></button>
+      <div class="nav-links">
+        <a href="index.html">Bosh sahifa</a>
+        <a href="plants.html">O'simliklar</a>
+        <a href="guldokon.html">Guldokonlar</a>
+        <a href="agroapteka.html">Agroapteka</a>
+        <a href="rating.html" class="active">Reyting</a>
+        <a href="dashboard.html">Mening Gultuvagim</a>
+      </div>
+    </nav>
+  </div>
+</header>
+
+<section class="section" style="padding-top:36px;">
+  <div class="container">
+    <div class="section-head" style="margin-bottom:26px;">
+      <h1 style="font-size:2rem;">🏆 Eng faol yetishtiruvchilar</h1>
+      <p>Gultuvagida ko'proq o'simlik parvarish qilayotgan foydalanuvchilar chegirmalarga ega bo'lishadi</p>
+    </div>
+
+    <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); margin-bottom:36px;">
+      <div class="card" style="padding:20px; text-align:center;">
+        <div class="badge badge-gold" style="margin-bottom:10px;">5+ o'simlik</div>
+        <h3 style="font-size:1.4rem;">10% chegirma</h3>
+        <p class="muted">Hamkor guldokonlarda</p>
+      </div>
+      <div class="card" style="padding:20px; text-align:center;">
+        <div class="badge badge-gold" style="margin-bottom:10px;">10+ o'simlik</div>
+        <h3 style="font-size:1.4rem;">15% chegirma</h3>
+        <p class="muted">Guldokon va agroaptekalarda</p>
+      </div>
+      <div class="card" style="padding:20px; text-align:center;">
+        <div class="badge badge-gold" style="margin-bottom:10px;">20+ o'simlik</div>
+        <h3 style="font-size:1.4rem;">25% chegirma</h3>
+        <p class="muted">+ maxsus "Gultuvak Ustasi" belgisi</p>
+      </div>
+    </div>
+
+    <div id="loading" class="text-center" style="padding:40px;"><div class="spinner"></div></div>
+
+    <div class="card" style="padding:0; overflow-x:auto; display:none;" id="rating-table-wrap">
+      <table>
+        <thead>
+          <tr><th>O'rin</th><th>Foydalanuvchi</th><th>O'simliklar soni</th><th>Chegirma</th></tr>
+        </thead>
+        <tbody id="rating-body"></tbody>
+      </table>
+    </div>
+    <div id="empty-state" class="empty-state" style="display:none;">
+      <p>Hozircha reytingda ma'lumot yo'q. Birinchi bo'lib o'simlik qo'shing va peshqadam bo'ling!</p>
+      <a href="dashboard.html" class="btn btn-primary" style="margin-top:14px;">Gul qo'shish</a>
+    </div>
+  </div>
+</section>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase-client.js"></script>
+<script>
+async function loadRating() {
+  const { data, error } = await sb.from("rating_view").select("*").order("plants_count", { ascending: false }).limit(50);
+  document.getElementById("loading").style.display = "none";
+
+  const rows = (data || []).filter(r => r.plants_count > 0);
+
+  if (rows.length === 0) {
+    document.getElementById("empty-state").style.display = "block";
+    return;
+  }
+
+  document.getElementById("rating-table-wrap").style.display = "block";
+  document.getElementById("rating-body").innerHTML = rows.map((r, i) => {
+    const rank = i + 1;
+    const rankClass = rank === 1 ? "rank-1" : rank === 2 ? "rank-2" : rank === 3 ? "rank-3" : "";
+    const nameMasked = r.full_name ? r.full_name.split(" ")[0] + " " + (r.full_name.split(" ")[1] ? r.full_name.split(" ")[1][0] + "." : "") : "Foydalanuvchi";
+    return `
+      <tr>
+        <td><span class="rank-badge ${rankClass}">${rank}</span></td>
+        <td>${nameMasked}</td>
+        <td>${r.plants_count}</td>
+        <td>${r.discount_percent > 0 ? `<span class="badge badge-gold">${r.discount_percent}%</span>` : "—"}</td>
+      </tr>
+    `;
+  }).join("");
+}
+loadRating();
+</script>
+</body>
+</html>
