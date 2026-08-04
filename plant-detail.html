@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>O'simlik haqida — GulTuvak</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="nav-inner">
+    <a href="index.html" class="nav-logo">🌿 GulTuvak</a>
+    <nav>
+      <button class="nav-burger" aria-label="Menyu"><span></span><span></span><span></span></button>
+      <div class="nav-links">
+        <a href="index.html">Bosh sahifa</a>
+        <a href="plants.html" class="active">O'simliklar</a>
+        <a href="guldokon.html">Guldokonlar</a>
+        <a href="agroapteka.html">Agroapteka</a>
+        <a href="rating.html">Reyting</a>
+        <a href="dashboard.html">Mening Gultuvagim</a>
+      </div>
+    </nav>
+  </div>
+</header>
+
+<section class="section" style="padding-top:36px;">
+  <div class="container" id="detail-container">
+    <!-- JS orqali to'ldiriladi -->
+  </div>
+</section>
+
+<script src="js/plants-data.js"></script>
+<script>
+const params = new URLSearchParams(window.location.search);
+const id = parseInt(params.get("id"));
+const plant = PLANTS_DATA.find(p => p.id === id);
+const container = document.getElementById("detail-container");
+
+if (!plant) {
+  container.innerHTML = `<div class="empty-state"><h2>O'simlik topilmadi</h2><a href="plants.html" class="btn btn-primary" style="margin-top:16px;">Katalogga qaytish</a></div>`;
+} else {
+  container.innerHTML = `
+    <a href="plants.html" class="muted" style="display:inline-block; margin-bottom:20px;">← Katalogga qaytish</a>
+    <div style="display:grid; grid-template-columns: 320px 1fr; gap:40px;" id="detail-grid">
+      <div>
+        <div class="card" style="height:280px; display:flex; align-items:center; justify-content:center; font-size:4rem; background:linear-gradient(160deg,var(--color-forest-light),var(--color-fern));">🌿</div>
+        <div style="margin-top:18px; display:flex; flex-direction:column; gap:10px;">
+          <span class="badge badge-forest">${plant.category}</span>
+          <span class="badge badge-clay">Qiyinlik: ${plant.difficulty}</span>
+        </div>
+        <a href="dashboard.html" class="btn btn-clay btn-block" style="margin-top:20px;">+ Gultuvagimga qo'shish</a>
+      </div>
+      <div>
+        <h1>${plant.name_uz}</h1>
+        <p class="muted" style="font-style:italic; margin-top:-8px;">${plant.latin_name || ""}</p>
+        <p style="margin-top:16px; font-size:1.02rem;">${plant.description || ""}</p>
+
+        <h3 style="margin-top:30px;">Parvarish ko'rsatkichlari</h3>
+        <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); margin-top:12px;">
+          <div class="card" style="padding:16px;"><div class="muted" style="font-size:.78rem;">SUG'ORISH</div><div style="font-weight:700; margin-top:4px;">${plant.watering_days} kunda 1 marta</div></div>
+          <div class="card" style="padding:16px;"><div class="muted" style="font-size:.78rem;">YORUG'LIK</div><div style="font-weight:700; margin-top:4px;">${plant.light}</div></div>
+          <div class="card" style="padding:16px;"><div class="muted" style="font-size:.78rem;">HARORAT</div><div style="font-weight:700; margin-top:4px;">${plant.temp_min}°–${plant.temp_max}°C</div></div>
+          <div class="card" style="padding:16px;"><div class="muted" style="font-size:.78rem;">NAMLIK</div><div style="font-weight:700; margin-top:4px;">${plant.humidity}</div></div>
+        </div>
+
+        <h3 style="margin-top:30px;">Tuproq</h3>
+        <p>${plant.soil || "Ma'lumot yo'q"}</p>
+
+        <h3 style="margin-top:24px;">Parvarish bo'yicha maslahat</h3>
+        <p>${plant.care_tips || "Ma'lumot yo'q"}</p>
+
+        ${plant.warning_notes ? `
+        <h3 style="margin-top:24px; color:var(--color-danger);">⚠️ Ogohlantirish</h3>
+        <p>${plant.warning_notes}</p>` : ""}
+      </div>
+    </div>
+    <style>
+      @media (max-width: 760px) {
+        #detail-grid { grid-template-columns: 1fr !important; }
+      }
+    </style>
+  `;
+  document.title = plant.name_uz + " — GulTuvak";
+}
+</script>
+</body>
+</html>
