@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>O'simliklar katalogi — GulTuvak</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="nav-inner">
+    <a href="index.html" class="nav-logo">🌿 GulTuvak</a>
+    <nav>
+      <button class="nav-burger" aria-label="Menyu"><span></span><span></span><span></span></button>
+      <div class="nav-links">
+        <a href="index.html">Bosh sahifa</a>
+        <a href="plants.html" class="active">O'simliklar</a>
+        <a href="guldokon.html">Guldokonlar</a>
+        <a href="agroapteka.html">Agroapteka</a>
+        <a href="rating.html">Reyting</a>
+        <a href="dashboard.html">Mening Gultuvagim</a>
+      </div>
+    </nav>
+  </div>
+</header>
+
+<section class="section" style="padding-top:36px;">
+  <div class="container">
+    <div class="section-head" style="margin-bottom:26px;">
+      <h1 style="font-size:2rem;">O'simliklar katalogi</h1>
+      <p>50 dan ortiq uy o'simligi bo'yicha aniq parvarish tavsiyalari</p>
+    </div>
+
+    <div class="flex gap-md" style="flex-wrap:wrap; margin-bottom:28px;">
+      <input type="text" id="search-input" placeholder="O'simlik nomini qidiring..." style="flex:1; min-width:220px; padding:12px 14px; border-radius:8px; border:1.5px solid var(--color-line); font-family:var(--font-body);">
+      <select id="category-filter" style="padding:12px 14px; border-radius:8px; border:1.5px solid var(--color-line); font-family:var(--font-body);">
+        <option value="">Barcha kategoriyalar</option>
+      </select>
+      <select id="difficulty-filter" style="padding:12px 14px; border-radius:8px; border:1.5px solid var(--color-line); font-family:var(--font-body);">
+        <option value="">Barcha darajalar</option>
+        <option value="Oson">Oson</option>
+        <option value="O'rta">O'rta</option>
+        <option value="Qiyin">Qiyin</option>
+      </select>
+    </div>
+
+    <p class="muted" id="result-count" style="margin-bottom:14px;"></p>
+    <div id="plants-grid" class="grid"></div>
+  </div>
+</section>
+
+<script src="js/plants-data.js"></script>
+<script src="js/supabase-client.js"></script>
+<script>
+const categorySelect = document.getElementById("category-filter");
+categorySelect.innerHTML += PLANT_CATEGORIES.map(c => `<option value="${c}">${c}</option>`).join("");
+
+function render() {
+  const q = document.getElementById("search-input").value.toLowerCase();
+  const cat = document.getElementById("category-filter").value;
+  const diff = document.getElementById("difficulty-filter").value;
+
+  const filtered = PLANTS_DATA.filter(p =>
+    p.name_uz.toLowerCase().includes(q) &&
+    (cat === "" || p.category === cat) &&
+    (diff === "" || p.difficulty === diff)
+  );
+
+  document.getElementById("result-count").textContent = `${filtered.length} ta o'simlik topildi`;
+
+  document.getElementById("plants-grid").innerHTML = filtered.map(p => `
+    <a href="plant-detail.html?id=${p.id}" class="card plant-card">
+      <div class="plant-card-media">🌿</div>
+      <div class="plant-card-body">
+        <span class="plant-card-tag">${p.category}</span>
+        <h3 style="font-size:1.05rem; margin-top:4px;">${p.name_uz}</h3>
+        <p class="muted" style="font-size:.82rem; font-style:italic; margin:0;">${p.latin_name || ""}</p>
+        <div class="plant-card-meta">
+          <span>💧 ${p.watering_days} kunda</span>
+          <span>⭐ ${p.difficulty}</span>
+        </div>
+      </div>
+    </a>
+  `).join("");
+}
+
+document.getElementById("search-input").addEventListener("input", render);
+document.getElementById("category-filter").addEventListener("change", render);
+document.getElementById("difficulty-filter").addEventListener("change", render);
+render();
+</script>
+</body>
+</html>
