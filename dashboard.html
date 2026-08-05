@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Mening Gultuvagim — GulTuvak</title>
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -43,7 +44,8 @@
 
       <!-- Bildirishnomalar -->
       <div class="card" style="padding:22px; margin-bottom:32px;">
-        <h3 style="margin-bottom:14px;">🔔 Bugungi eslatmalar</h3>
+        <h3 style="margin-bottom:6px;">🔔 Bugungi eslatmalar</h3>
+        <p class="muted" style="margin-bottom:14px; font-size:.85rem;">Eslatma faqat sug'orish muddati kelganda yoki yaqinlashganda shu yerda chiqadi — bu sahifaga har kirganingizda avtomatik tekshiriladi.</p>
         <div id="notif-list"></div>
       </div>
 
@@ -133,12 +135,22 @@ function renderPlants() {
 
   grid.innerHTML = userPlants.map(up => {
     const plant = plantById(up.plant_id) || {};
-    const overdue = daysSince(up.last_watered) >= (plant.watering_days || 7);
+    const passed = daysSince(up.last_watered);
+    const remaining = (plant.watering_days || 7) - passed;
+    const overdue = remaining <= 0;
+    let statusBadge;
+    if (overdue) {
+      statusBadge = '<span class="badge badge-clay">💧 Sug\'organing kerak</span>';
+    } else if (remaining <= 2) {
+      statusBadge = `<span class="badge badge-gold">⏳ ${remaining} kundan keyin</span>`;
+    } else {
+      statusBadge = '<span class="badge badge-forest">✓ Yaxshi</span>';
+    }
     return `
       <div class="card" style="padding:18px;">
         <div class="flex-between">
           <span class="plant-card-tag">${plant.category || ""}</span>
-          ${overdue ? '<span class="badge badge-clay">💧 Sug\'organing kerak</span>' : '<span class="badge badge-forest">✓ Yaxshi</span>'}
+          ${statusBadge}
         </div>
         <h3 style="font-size:1.05rem; margin-top:10px;">${up.nickname || plant.name_uz || "O'simlik"}</h3>
         <p class="muted" style="margin:2px 0 10px;">${plant.name_uz || ""}</p>
@@ -190,24 +202,36 @@ async function removePlant(userPlantId) {
   await loadNotifications();
 }
 
-// Sug'orish muddati o'tgan gullar uchun bildirishnoma yaratish (agar hali yaratilmagan bo'lsa)
+// Sug'orish muddati o'tgan yoki yaqinlashib qolgan gullar uchun bildirishnoma yaratish
 async function generateDueNotifications() {
   const today = new Date().toISOString().slice(0,10);
   for (const up of userPlants) {
     const plant = plantById(up.plant_id);
     if (!plant) continue;
-    if (daysSince(up.last_watered) >= plant.watering_days) {
-      const { data: existing } = await sb.from("notifications")
-        .select("id").eq("user_plant_id", up.id).eq("is_read", false).eq("notif_type", "suv");
-      if (!existing || existing.length === 0) {
-        await sb.from("notifications").insert({
-          user_id: currentUser.id,
-          user_plant_id: up.id,
-          message: `"${up.nickname || plant.name_uz}" gulini sug'orish vaqti keldi.`,
-          notif_type: "suv",
-          due_date: today
-        });
-      }
+    const passed = daysSince(up.last_watered);
+    const remaining = plant.watering_days - passed;
+
+    let message = null;
+    if (remaining <= 0) {
+      message = `"${up.nickname || plant.name_uz}" gulini sug'orish vaqti keldi.`;
+    } else if (remaining <= 2) {
+      message = `"${up.nickname || plant.name_uz}" gulini ${remaining} kundan keyin sug'orish kerak bo'ladi.`;
+    }
+    if (!message) continue;
+
+    const { data: existing } = await sb.from("notifications")
+      .select("id").eq("user_plant_id", up.id).eq("is_read", false).eq("notif_type", "suv");
+    if (!existing || existing.length === 0) {
+      await sb.from("notifications").insert({
+        user_id: currentUser.id,
+        user_plant_id: up.id,
+        message,
+        notif_type: "suv",
+        due_date: today
+      });
+    } else {
+      // Xabar matnini yangilab turamiz (masalan "3 kundan keyin" -> "sug'organing kerak")
+      await sb.from("notifications").update({ message }).eq("id", existing[0].id);
     }
   }
 }
@@ -221,7 +245,7 @@ async function loadNotifications() {
   }
   list.innerHTML = data.map(n => `
     <div class="notif-item unread">
-      <span class="notif-icon">💧</span>
+      <span class="notif-icon">${n.message.includes("kundan keyin") ? "⏳" : "💧"}</span>
       <div style="flex:1;">
         <div>${n.message}</div>
         <div class="muted" style="font-size:.78rem;">${n.due_date}</div>
