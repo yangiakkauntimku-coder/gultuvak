@@ -14,7 +14,13 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 // Joriy sessiyani olish, agar yo'q bo'lsa null qaytaradi
 async function getCurrentUser() {
   const { data: { session } } = await sb.auth.getSession();
-  return session ? session.user : null;
+  if (session) return session.user;
+
+  // Sahifa endigina yuklanganda Supabase localStorage'dan sessiyani
+  // o'qib ulgurmagan bo'lishi mumkin — bir marta qisqa kutib qayta tekshiramiz
+  await new Promise(resolve => setTimeout(resolve, 400));
+  const { data: { session: retrySession } } = await sb.auth.getSession();
+  return retrySession ? retrySession.user : null;
 }
 
 // Foydalanuvchi profilini olish
