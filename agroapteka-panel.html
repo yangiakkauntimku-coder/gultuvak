@@ -3,325 +3,210 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Agroapteka bo'lish — GulTuvak</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<style>
-  :root{
-    --bg:#F2F6EE; --panel:#FFFFFF; --ink:#1C2A20; --ink-soft:#5B6B5E;
-    --forest:#1F3B2C; --forest-2:#16261C; --leaf:#3E6B4F; --leaf-soft:#7FA487;
-    --ochre:#C99A3B; --ochre-soft:#F1E3C3; --clay:#B5533C; --clay-soft:#F3DAD2;
-    --line:#DCE3D6; --shadow:0 10px 28px rgba(22,38,28,.10);
-  }
-  *{box-sizing:border-box;}
-  html,body{margin:0;padding:0;}
-  body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased;}
-  h1,h2,h3{font-family:'Fraunces',serif;}
-  .mono{font-family:'IBM Plex Mono',monospace;}
-  a{color:inherit;}
-
-  header{background:var(--forest);color:#EFF3E9;padding:16px 5vw;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;}
-  header .brand{display:flex;align-items:center;gap:9px;font-family:'Fraunces',serif;font-weight:600;font-size:18px;}
-  header nav{display:flex;gap:22px;flex-wrap:wrap;font-size:13.5px;align-items:center;}
-  header nav a{text-decoration:none;color:#D9E4D3;}
-  header nav a:hover{color:#fff;}
-  header nav a.current{color:var(--ochre);font-weight:600;}
-  .who{font-size:12.5px;color:#D9E4D3;display:flex;align-items:center;gap:10px;}
-  .who button{background:transparent;border:1px solid rgba(255,255,255,.3);color:#fff;border-radius:7px;padding:5px 11px;font-size:12px;cursor:pointer;}
-  .who button:hover{background:rgba(255,255,255,.1);}
-
-  .hero{padding:56px 5vw 40px;display:grid;grid-template-columns:1.1fr .9fr;gap:40px;align-items:center;max-width:1180px;margin:0 auto;}
-  .hero .eyebrow{display:inline-flex;align-items:center;gap:7px;background:var(--ochre-soft);color:#8A6A22;font-size:12px;font-weight:600;padding:6px 13px;border-radius:20px;margin-bottom:16px;}
-  .hero h1{font-size:36px;line-height:1.16;margin:0 0 14px;color:var(--forest);font-weight:600;}
-  .hero p{font-size:15px;color:var(--ink-soft);line-height:1.6;max-width:520px;}
-  .hero-card{background:var(--panel);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);padding:26px;}
-  .hero-card .stat-row{display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--line);}
-  .hero-card .stat-row:last-child{border-bottom:none;}
-  .hero-card .num{font-family:'Fraunces',serif;font-size:20px;color:var(--forest);font-weight:600;}
-  .hero-card .lbl{font-size:12.5px;color:var(--ink-soft);}
-
-  @media (max-width:920px){ .hero{grid-template-columns:1fr;} .wrap{grid-template-columns:1fr !important;} }
-
-  .wrap{max-width:760px;margin:0 auto;padding:0 5vw 70px;}
-  .panel{background:var(--panel);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);padding:26px;margin-bottom:20px;}
-  .panel h2{font-size:19px;margin:0 0 4px;color:var(--forest);}
-  .panel .sub{font-size:13px;color:var(--ink-soft);margin-bottom:18px;}
-
-  .tabs{display:flex;gap:6px;margin-bottom:18px;background:#F0F3EC;border-radius:10px;padding:4px;}
-  .tab{flex:1;text-align:center;padding:9px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;color:var(--ink-soft);}
-  .tab.active{background:#fff;color:var(--forest);box-shadow:0 2px 6px rgba(0,0,0,.06);}
-
-  .field{margin-bottom:14px;}
-  .field label{display:block;font-size:12.5px;font-weight:600;color:var(--ink);margin-bottom:6px;}
-  .field input,.field textarea{width:100%;border:1px solid var(--line);border-radius:8px;padding:10px 12px;font-size:13.5px;font-family:'Inter',sans-serif;background:#FBFCF9;outline:none;}
-  .field input:focus,.field textarea:focus{border-color:var(--leaf-soft);}
-  .field textarea{resize:vertical;min-height:70px;}
-  .field .hint{font-size:11.5px;color:var(--ink-soft);margin-top:4px;}
-
-  .btn{display:inline-flex;align-items:center;gap:8px;border-radius:9px;border:1px solid transparent;padding:12px 22px;font-size:14px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;text-decoration:none;transition:filter .12s ease, transform .06s ease;}
-  .btn:active{transform:translateY(1px);}
-  .btn:disabled{opacity:.6;cursor:default;}
-  .btn-primary{background:var(--leaf);color:#fff;width:100%;justify-content:center;}
-  .btn-primary:hover{filter:brightness(1.08);}
-  .btn-ghost{background:transparent;color:var(--forest);border-color:var(--line);}
-
-  .msg{border-radius:12px;padding:13px 16px;margin-bottom:16px;font-size:13.5px;display:none;align-items:flex-start;gap:9px;}
-  .msg.show{display:flex;}
-  .msg.ok{background:#EAF3E8;border:1px solid #CBE0C7;color:var(--leaf);}
-  .msg.err{background:var(--clay-soft);border:1px solid #E7BCAF;color:var(--clay);}
-
-  .app-row{border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:10px;}
-  .app-row .top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;}
-  .app-row .name{font-weight:600;font-size:14px;color:var(--ink);}
-  .app-row .addr{font-size:12.5px;color:var(--ink-soft);margin-top:2px;}
-  .app-row .meta{font-size:11.5px;color:var(--ink-soft);margin-top:8px;}
-  .badge{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;font-size:11.5px;font-weight:600;flex-shrink:0;}
-  .badge-green{background:#DDEBD9;color:var(--leaf);}
-  .badge-ochre{background:var(--ochre-soft);color:#8A6A22;}
-  .empty-hint{font-size:13px;color:var(--ink-soft);padding:8px 0;}
-  .loading{font-size:13px;color:var(--ink-soft);padding:8px 0;}
-
-  footer{text-align:center;padding:26px;font-size:12px;color:var(--ink-soft);}
-  a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid var(--ochre);outline-offset:2px;}
-  .hidden{display:none !important;}
-</style>
+<title>Agroapteka kabineti — GulTuvak</title>
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
-<header>
-  <div class="brand">🌿 GulTuvak</div>
-  <nav>
-    <a href="index.html">Bosh sahifa</a>
-    <a href="plants.html">O'simliklar</a>
-    <a href="guldokon.html">Guldokonlar</a>
-    <a href="guldokon-panel.html">Guldokon egasiman</a>
-    <a href="agroapteka-panel.html" class="current">Agroapteka egasiman</a>
-    <span class="who hidden" id="whoBox"><span id="whoName"></span><button id="logoutBtn">Chiqish</button></span>
-  </nav>
+<header class="site-header">
+  <div class="nav-inner">
+    <a href="index.html" class="nav-logo">🌿 GulTuvak</a>
+    <nav>
+      <button class="nav-burger" aria-label="Menyu"><span></span><span></span><span></span></button>
+      <div class="nav-links">
+        <a href="index.html">Bosh sahifa</a>
+        <a href="plants.html">O'simliklar</a>
+        <a href="guldokon.html">Guldokonlar</a>
+        <a href="agroapteka.html">Agroapteka</a>
+        <a href="rating.html">Reyting</a>
+        <a href="dashboard.html">Mening Gultuvagim</a>
+        <a href="#" onclick="logout()" class="btn btn-outline btn-sm">Chiqish</a>
+      </div>
+    </nav>
+  </div>
 </header>
 
-<section class="hero">
-  <div>
-    <div class="eyebrow">💊 Biznes uchun</div>
-    <h1>Agroaptekangizni GulTuvak platformasiga qo'shing</h1>
-    <p>O'g'it, himoya vositalari va parvarish mahsulotlarini qidirayotgan foydalanuvchilar aynan shu yerda sizni topadi. Hisob yarating, arizangizni yuboring — biz ko'rib chiqamiz va tasdiqlaymiz.</p>
+<div id="loading" class="text-center" style="padding:60px;"><div class="spinner"></div></div>
+
+<div id="locked-view" class="container" style="display:none;">
+  <div class="locked-panel">
+    <div style="font-size:2.4rem;">🔒</div>
+    <h2 style="margin-top:12px;">Agroapteka kabineti</h2>
+    <p>Bu bo'lim faqat maxsus kirish kodi yoki premium obuna orqali ochiladi.</p>
+    <form id="code-form" style="margin-top:24px; text-align:left;">
+      <div class="form-field">
+        <label>Kirish kodi</label>
+        <input type="text" id="access-code" placeholder="APTEKA-2026-XX" required>
+      </div>
+      <p id="code-error" class="muted" style="color:var(--color-danger); display:none;"></p>
+      <button type="submit" class="btn btn-clay btn-block">Kodni tasdiqlash</button>
+    </form>
+    <p class="muted" style="margin-top:18px;">Premium obunangiz bormi? Administrator bilan bog'laning:<br>
+      <a href="https://t.me/AzadiB_Way" target="_blank" style="text-decoration:underline; color:var(--color-forest);">Telegram: @AzadiB_Way</a> ·
+      <a href="tel:+998500356863" style="text-decoration:underline; color:var(--color-forest);">+998 50 035 68 63</a>
+    </p>
   </div>
-  <div class="hero-card">
-    <div class="stat-row"><span class="lbl">Ariza ko'rib chiqish muddati</span><span class="num mono">1–2 kun</span></div>
-    <div class="stat-row"><span class="lbl">Ro'yxatdan o'tish</span><span class="num mono">Bepul</span></div>
-    <div class="stat-row"><span class="lbl">Ko'rinish</span><span class="num mono">Agroapteka bo'limida</span></div>
+</div>
+
+<section class="section" id="panel-view" style="display:none; padding-top:30px;">
+  <div class="container">
+    <h1 style="font-size:1.8rem;">Agroaptekam</h1>
+    <p class="muted" style="margin-bottom:26px;">Do'koningiz ma'lumotlarini va mahsulotlarni shu yerda boshqaring.</p>
+
+    <div class="card" style="padding:24px; margin-bottom:30px;">
+      <h3 style="margin-bottom:16px;">Apteka ma'lumotlari</h3>
+      <p class="muted" style="margin-bottom:16px;">Ma'lumotlaringiz saqlangandan va admin tomonidan tasdiqlangandan so'ng "Agroapteka" sahifasida hammaga ko'rinadi.</p>
+      <form id="pharmacy-form">
+        <div class="form-field"><label>Apteka nomi</label><input type="text" id="ph-name" required></div>
+        <div class="form-field"><label>Manzil</label><input type="text" id="ph-address" required></div>
+        <div class="form-field"><label>Telefon raqam</label><input type="tel" id="ph-phone" required></div>
+        <div class="form-field"><label>Ish vaqti</label><input type="text" id="ph-hours" placeholder="09:00 – 20:00"></div>
+        <div class="form-field"><label>Qisqacha tavsif</label><textarea id="ph-desc" rows="3"></textarea></div>
+        <button type="submit" class="btn btn-primary">Saqlash</button>
+      </form>
+    </div>
+
+    <div id="products-section" style="display:none;">
+      <div class="flex-between" style="margin-bottom:16px;">
+        <h3>Mahsulotlarim</h3>
+        <button class="btn btn-clay btn-sm" onclick="openProductModal()">+ Mahsulot qo'shish</button>
+      </div>
+      <div id="products-grid" class="grid"></div>
+    </div>
   </div>
 </section>
 
-<div class="wrap">
-
-  <!-- AUTH PANEL (shown when logged out) -->
-  <div class="panel" id="authPanel">
-    <div class="tabs">
-      <div class="tab active" data-tab="login">Kirish</div>
-      <div class="tab" data-tab="register">Ro'yxatdan o'tish</div>
-    </div>
-
-    <div class="msg err" id="authErr"></div>
-
-    <form id="loginForm">
-      <h2>Hisobga kirish</h2>
-      <div class="sub">Agroapteka egasi sifatida tizimga kiring</div>
-      <div class="field"><label>Email</label><input id="li_email" type="email" placeholder="email@misol.uz"></div>
-      <div class="field"><label>Parol</label><input id="li_pass" type="password" placeholder="••••••••"></div>
-      <button type="submit" class="btn btn-primary">Kirish</button>
-    </form>
-
-    <form id="registerForm" class="hidden">
-      <h2>Yangi hisob yaratish</h2>
-      <div class="sub">Agroapteka egasi sifatida ro'yxatdan o'ting</div>
-      <div class="field"><label>Ism Familiya</label><input id="rg_name" placeholder="Ism Familiya"></div>
-      <div class="field"><label>Telefon</label><input id="rg_phone" class="mono" placeholder="+998 90 123 45 67"></div>
-      <div class="field"><label>Email</label><input id="rg_email" type="email" placeholder="email@misol.uz"></div>
-      <div class="field"><label>Parol</label><input id="rg_pass" type="password" placeholder="Kamida 6 belgi">
-        <div class="hint">Ro'yxatdan o'tgach shu email/parol bilan har doim kirasiz</div>
+<div id="product-modal" style="display:none; position:fixed; inset:0; background:rgba(27,27,22,0.5); z-index:200; align-items:center; justify-content:center; padding:20px;">
+  <div class="card" style="max-width:420px; width:100%; padding:28px; background:var(--color-white);">
+    <h3 style="margin-bottom:18px;">Yangi mahsulot</h3>
+    <form id="product-form">
+      <div class="form-field"><label>Nomi</label><input type="text" id="p-name" required></div>
+      <div class="form-field"><label>Narxi (so'm)</label><input type="number" id="p-price"></div>
+      <div class="form-field"><label>Rasm URL (ixtiyoriy)</label><input type="url" id="p-photo" placeholder="https://..."></div>
+      <div class="form-field"><label>Tavsif</label><textarea id="p-desc" rows="2"></textarea></div>
+      <div class="flex gap-md" style="margin-top:10px;">
+        <button type="button" class="btn btn-ghost" onclick="closeProductModal()">Bekor qilish</button>
+        <button type="submit" class="btn btn-primary" style="flex:1;">Qo'shish</button>
       </div>
-      <button type="submit" class="btn btn-primary">Ro'yxatdan o'tish</button>
     </form>
   </div>
-
-  <!-- APPLICATION PANEL (shown when logged in) -->
-  <div class="panel hidden" id="applyPanel">
-    <h2>Ariza formasi</h2>
-    <div class="sub">Agroaptekangiz haqida ma'lumot kiriting, biz uni ko'rib chiqamiz</div>
-    <div class="msg ok" id="applyOk">✓ <span>Arizangiz qabul qilindi va "Kutilmoqda" holatida.</span></div>
-    <div class="msg err" id="applyErr"></div>
-    <form id="applyForm">
-      <div class="field"><label>Agroapteka nomi</label><input id="f_name" placeholder="Masalan: O'simlik Shifo"></div>
-      <div class="field"><label>Manzil</label><input id="f_address" placeholder="Tuman, ko'cha, uy raqami"></div>
-      <div class="field"><label>Telefon</label><input id="f_phone" class="mono" placeholder="+998 90 123 45 67"></div>
-      <div class="field"><label>Ish vaqti <span style="font-weight:400;color:var(--ink-soft);">(ixtiyoriy)</span></label><input id="f_hours" placeholder="09:00 – 20:00"></div>
-      <div class="field"><label>Qisqa tavsif <span style="font-weight:400;color:var(--ink-soft);">(ixtiyoriy)</span></label><textarea id="f_desc" placeholder="Qanday o'g'it, dori yoki himoya vositalari mavjud?"></textarea></div>
-      <button type="submit" class="btn btn-primary">Ariza yuborish</button>
-    </form>
-  </div>
-
-  <div class="panel hidden" id="trackPanel">
-    <h2>Mening arizalarim</h2>
-    <div class="sub">Hisobingizga bog'langan barcha agroapteka arizalari</div>
-    <div id="appList"><div class="loading">Yuklanmoqda...</div></div>
-  </div>
-
 </div>
 
-<footer>🌿 GulTuvak — Ekologik loyiha © 2026</footer>
-
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase-client.js"></script>
 <script>
-/* ===== Supabase config ===== */
-const SUPABASE_URL = "https://pbajzrkgevogyqrltdte.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBiYWp6cmtnZXZvZ3lxcmx0ZHRlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU4MTc5NTIsImV4cCI6MjEwMTM5Mzk1Mn0.uLr52jO-BTZL7XQ-H-pX2bOHxvTGO70MGnO2FJ2Da8E";
-const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-function escapeHtml(s){
-  return String(s==null?'':s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-}
-function fmtDate(iso){
-  const d = new Date(iso);
-  return d.toLocaleDateString('uz-UZ', {day:'2-digit', month:'2-digit', year:'numeric'});
-}
-function showMsg(id, text){
-  const el = document.getElementById(id);
-  const span = el.querySelector('span');
-  if(span) span.textContent = text; else el.textContent = text;
-  el.classList.add('show');
-}
-function hideMsg(id){ document.getElementById(id).classList.remove('show'); }
-
-/* ===== Tabs ===== */
-document.querySelectorAll('.tab').forEach(t=>{
-  t.addEventListener('click', ()=>{
-    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
-    t.classList.add('active');
-    const isLogin = t.dataset.tab === 'login';
-    document.getElementById('loginForm').classList.toggle('hidden', !isLogin);
-    document.getElementById('registerForm').classList.toggle('hidden', isLogin);
-    hideMsg('authErr');
-  });
-});
-
-/* ===== Auth actions ===== */
-document.getElementById('loginForm').addEventListener('submit', async (e)=>{
-  e.preventDefault();
-  hideMsg('authErr');
-  const email = document.getElementById('li_email').value.trim();
-  const password = document.getElementById('li_pass').value;
-  const { error } = await sb.auth.signInWithPassword({ email, password });
-  if(error){ showMsg('authErr', "Kirishda xato: " + error.message); return; }
-  await onAuthed();
-});
-
-document.getElementById('registerForm').addEventListener('submit', async (e)=>{
-  e.preventDefault();
-  hideMsg('authErr');
-  const full_name = document.getElementById('rg_name').value.trim();
-  const phone = document.getElementById('rg_phone').value.trim();
-  const email = document.getElementById('rg_email').value.trim();
-  const password = document.getElementById('rg_pass').value;
-  if(!full_name || !phone || !email || password.length < 6){
-    showMsg('authErr', "Barcha maydonlarni to'ldiring, parol kamida 6 belgi bo'lsin.");
-    return;
-  }
-  const { data, error } = await sb.auth.signUp({
-    email, password,
-    options: { data: { full_name, phone, role: 'apteka' } }
-  });
-  if(error){ showMsg('authErr', "Ro'yxatdan o'tishda xato: " + error.message); return; }
-
-  // Fallback: make sure a profiles row exists even if no DB trigger is set up
-  if(data.user){
-    await sb.from('profiles').upsert({ id: data.user.id, full_name, phone, role: 'apteka' });
-  }
-  await onAuthed();
-});
-
-document.getElementById('logoutBtn').addEventListener('click', async ()=>{
-  await sb.auth.signOut();
-  location.reload();
-});
-
-/* ===== After auth ===== */
 let currentUser = null;
+let myPharmacy = null;
 
-async function onAuthed(){
-  const { data:{ user } } = await sb.auth.getUser();
-  if(!user){ return; }
-  currentUser = user;
+async function init() {
+  currentUser = await requireAuth();
+  if (!currentUser) return;
+  const profile = await getProfile(currentUser.id);
 
-  document.getElementById('authPanel').classList.add('hidden');
-  document.getElementById('applyPanel').classList.remove('hidden');
-  document.getElementById('trackPanel').classList.remove('hidden');
-  document.getElementById('whoBox').classList.remove('hidden');
+  document.getElementById("loading").style.display = "none";
 
-  const { data: profile } = await sb.from('profiles').select('full_name').eq('id', user.id).maybeSingle();
-  document.getElementById('whoName').textContent = profile?.full_name ? "Salom, " + profile.full_name : user.email;
-
-  await loadMyApplications();
+  if (profile && (profile.role === "apteka" || profile.is_premium)) {
+    showPanel();
+  } else {
+    document.getElementById("locked-view").style.display = "block";
+  }
 }
 
-document.getElementById('applyForm').addEventListener('submit', async (e)=>{
+document.getElementById("code-form").addEventListener("submit", async (e) => {
   e.preventDefault();
-  hideMsg('applyErr'); hideMsg('applyOk');
-  const name = document.getElementById('f_name').value.trim();
-  const address = document.getElementById('f_address').value.trim();
-  const phone = document.getElementById('f_phone').value.trim();
-  const working_hours = document.getElementById('f_hours').value.trim();
-  const description = document.getElementById('f_desc').value.trim();
+  const code = document.getElementById("access-code").value.trim();
+  const errEl = document.getElementById("code-error");
+  errEl.style.display = "none";
 
-  if(!name || !address || !phone){
-    showMsg('applyErr', "Agroapteka nomi, manzil va telefon kiritilishi shart.");
+  const { data: codeRow } = await sb.from("access_codes").select("*").eq("code", code).eq("code_type", "apteka").eq("is_used", false).maybeSingle();
+
+  if (!codeRow) {
+    errEl.textContent = "Kod noto'g'ri yoki allaqachon ishlatilgan.";
+    errEl.style.display = "block";
     return;
   }
-  const { error } = await sb.from('pharmacies').insert({
-    owner_id: currentUser.id,
-    name, address, phone, working_hours, description,
-    is_approved: false
-  });
-  if(error){
-    showMsg('applyErr', "Saqlashda xato: " + error.message);
-    return;
-  }
-  document.getElementById('applyForm').reset();
-  showMsg('applyOk', 'Arizangiz qabul qilindi va "Kutilmoqda" holatida.');
-  await loadMyApplications();
+
+  await sb.from("access_codes").update({ is_used: true, used_by: currentUser.id }).eq("id", codeRow.id);
+  await sb.from("profiles").update({ role: "apteka" }).eq("id", currentUser.id);
+
+  document.getElementById("locked-view").style.display = "none";
+  showPanel();
 });
 
-async function loadMyApplications(){
-  const wrap = document.getElementById('appList');
-  wrap.innerHTML = '<div class="loading">Yuklanmoqda...</div>';
-  const { data, error } = await sb.from('pharmacies').select('*').eq('owner_id', currentUser.id).order('created_at', {ascending:false});
-  if(error){
-    wrap.innerHTML = `<div class="empty-hint">Yuklashda xato: ${escapeHtml(error.message)}</div>`;
-    return;
+async function showPanel() {
+  document.getElementById("panel-view").style.display = "block";
+
+  const { data: pharmacy } = await sb.from("pharmacies").select("*").eq("owner_id", currentUser.id).maybeSingle();
+  if (pharmacy) {
+    myPharmacy = pharmacy;
+    document.getElementById("ph-name").value = pharmacy.name;
+    document.getElementById("ph-address").value = pharmacy.address;
+    document.getElementById("ph-phone").value = pharmacy.phone;
+    document.getElementById("ph-hours").value = pharmacy.working_hours || "";
+    document.getElementById("ph-desc").value = pharmacy.description || "";
+    document.getElementById("products-section").style.display = "block";
+    loadProducts();
   }
-  if(!data || !data.length){
-    wrap.innerHTML = `<div class="empty-hint">Hali arizangiz yo'q.</div>`;
-    return;
-  }
-  wrap.innerHTML = data.map(p=>`
-    <div class="app-row">
-      <div class="top">
-        <div>
-          <div class="name">${escapeHtml(p.name)}</div>
-          <div class="addr">${escapeHtml(p.address)}</div>
-        </div>
-        ${p.is_approved ? '<span class="badge badge-green">Tasdiqlangan</span>' : '<span class="badge badge-ochre">Kutilmoqda</span>'}
-      </div>
-      <div class="meta">Ariza sanasi: ${fmtDate(p.created_at)}</div>
-    </div>
-  `).join('');
 }
 
-/* ===== Init: check for existing session ===== */
-(async function init(){
-  const { data:{ session } } = await sb.auth.getSession();
-  if(session){ await onAuthed(); }
-})();
+document.getElementById("pharmacy-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const payload = {
+    owner_id: currentUser.id,
+    name: document.getElementById("ph-name").value.trim(),
+    address: document.getElementById("ph-address").value.trim(),
+    phone: document.getElementById("ph-phone").value.trim(),
+    working_hours: document.getElementById("ph-hours").value.trim(),
+    description: document.getElementById("ph-desc").value.trim()
+  };
+
+  if (myPharmacy) {
+    await sb.from("pharmacies").update(payload).eq("id", myPharmacy.id);
+  } else {
+    const { data } = await sb.from("pharmacies").insert(payload).select().single();
+    myPharmacy = data;
+    document.getElementById("products-section").style.display = "block";
+  }
+  alert("Saqlandi!");
+});
+
+function openProductModal() { document.getElementById("product-modal").style.display = "flex"; }
+function closeProductModal() { document.getElementById("product-modal").style.display = "none"; }
+
+document.getElementById("product-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  if (!myPharmacy) { alert("Avval apteka ma'lumotlarini saqlang."); return; }
+  await sb.from("pharmacy_products").insert({
+    pharmacy_id: myPharmacy.id,
+    name: document.getElementById("p-name").value.trim(),
+    price: document.getElementById("p-price").value || null,
+    photo_url: document.getElementById("p-photo").value.trim() || null,
+    description: document.getElementById("p-desc").value.trim()
+  });
+  closeProductModal();
+  document.getElementById("product-form").reset();
+  loadProducts();
+});
+
+async function loadProducts() {
+  const { data } = await sb.from("pharmacy_products").select("*").eq("pharmacy_id", myPharmacy.id).order("created_at", { ascending: false });
+  document.getElementById("products-grid").innerHTML = (data || []).map(pr => `
+    <div class="card" style="padding:16px;">
+      <h3 style="font-size:1rem;">${pr.name}</h3>
+      ${pr.price ? `<p class="muted">${pr.price} so'm</p>` : ""}
+      <p style="font-size:.88rem;">${pr.description || ""}</p>
+      <button class="btn btn-ghost btn-sm" onclick="deleteProduct('${pr.id}')">O'chirish</button>
+    </div>
+  `).join("") || `<p class="muted">Hali mahsulot qo'shilmagan.</p>`;
+}
+
+async function deleteProduct(id) {
+  await sb.from("pharmacy_products").delete().eq("id", id);
+  loadProducts();
+}
+
+init();
 </script>
 </body>
 </html>
